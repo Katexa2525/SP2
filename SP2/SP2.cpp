@@ -12,15 +12,16 @@
 using namespace std;
 HWND hWnd;
 HWND hButton;
+HWND hRowsEdit;    // Поле ввода количества строк
+HWND hColsEdit;    // Поле ввода количества столбцов
 int fontSize = 40;
-const int COL_NUMBER = 3;
-const int ROW_NUMBER = 3;
-const int CELL_NUMBER = COL_NUMBER * ROW_NUMBER;
-string textPieces[CELL_NUMBER];
+int COL_NUMBER = 3;
+int ROW_NUMBER = 3;
+vector<vector<string>> textPieces;
 
 // Панель
 int panelWidth = 0;
-int panelHeight = 50;
+int panelHeight = 100;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void InitDC(HWND hWnd, int windowWidth, int windowHeight);
@@ -42,28 +43,22 @@ void OnButtonClick(HWND hWnd)
 
   if (GetOpenFileName(&ofn))
   {
-    // Создаем временный массив для новых данных
-    string newtextPieces[CELL_NUMBER];
-    memset(newtextPieces, 0, sizeof(newtextPieces));
-
     ifstream in(szFileName);
     string line;
     int i = 0;
+    textPieces.clear(); // Очистка вектора
     while (getline(in, line))
     {
       istringstream iss(line);
       string word;
-      int col = 0;
+      vector<string> row;
       while (iss >> word)
       {
-        newtextPieces[i * COL_NUMBER + col] = ConvertUTF8ToANSI(word);
-        col++;
+        row.push_back(ConvertUTF8ToANSI(word));
       }
+      textPieces.push_back(row);
       i++;
     }
-
-    // Перенос новых данных в основной массив
-    memcpy(textPieces, newtextPieces, sizeof(newtextPieces));
 
     InvalidateRect(hWnd, NULL, TRUE);
   }
@@ -143,6 +138,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       MessageBox(hWnd, L"Создание кнопки не удалось!", L"Ошибка", MB_ICONERROR);
     }
+
+    hRowsEdit = CreateWindow(L"EDIT", L"3", WS_CHILD | WS_VISIBLE | ES_NUMBER, 140, 10, 50, 30, hWnd, (HMENU)1002, NULL, NULL);
+
+    hColsEdit = CreateWindow(L"EDIT", L"3", WS_CHILD | WS_VISIBLE | ES_NUMBER, 200, 10, 50, 30, hWnd, (HMENU)1003, NULL, NULL);
     break;
   }
   case WM_COMMAND:
@@ -151,19 +150,34 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       OnButtonClick(hWnd);
     }
+    else if (LOWORD(wParam) == 1002 || LOWORD(wParam) == 1003)
+    {
+      int rows, cols;
+      rows = GetDlgItemInt(hWnd, 1002, NULL, FALSE);
+      cols = GetDlgItemInt(hWnd, 1003, NULL, FALSE);
+
+      ROW_NUMBER = rows;
+      COL_NUMBER = cols;
+
+      RECT panelRect;
+      GetClientRect(hWnd, &panelRect);
+      panelWidth = panelRect.right - panelRect.left;
+      panelHeight = 100;
+
+      RECT rect;
+      GetClientRect(hWnd, &rect);
+      width = rect.right - rect.left;
+      height = rect.bottom - rect.top;
+
+      InvalidateRect(hWnd, NULL, TRUE); // Обновляем окно
+    }
     break;
   }
   case WM_SIZE:
   {
     width = LOWORD(lParam);
     height = HIWORD(lParam);
-
-    // Обновляем размеры и положение панели
-    panelWidth = width;
     SetWindowPos(hButton, NULL, 10, 10, 120, 30, SWP_NOZORDER);
-
-    // Пересчитываем размеры и перерисовываем таблицу
-    InvalidateRect(hWnd, NULL, TRUE);
     break;
   }
   case WM_PAINT:
@@ -206,7 +220,12 @@ void DrawTable(HDC currDC, int windowWidth, int windowHeight)
     {
       RECT cellRect = { x, y, x + columnWidth, y + rowHeight };
 
-      string ansiText = ConvertUTF8ToANSI(textPieces[i * COL_NUMBER + j]);
+      string ansiText;
+      if (i < textPieces.size() && j < textPieces[i].size())
+      {
+        ansiText = textPieces[i][j];
+      }
+
       DrawTextA(currDC, ansiText.c_str(), -1, &cellRect, DT_EDITCONTROL | DT_WORDBREAK);
 
       // Вертикальные линии между столбцами
