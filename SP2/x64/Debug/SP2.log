@@ -1,3 +1,4 @@
 ﻿  SP2.cpp
 C:\Users\Катя\Desktop\5 сем\СП\SP2\SP2\SP2.cpp(100,13): warning C4244: return: преобразование "WPARAM" в "int", возможна потеря данных
+  LINK : не найден или не выполнена сборка C:\Users\Катя\Desktop\5 сем\СП\SP2\x64\Debug\SP2.exe при последней инкрементной компоновке; выполняется полная компоновка
   SP2.vcxproj -> C:\Users\Катя\Desktop\5 сем\СП\SP2\x64\Debug\SP2.exe

@@ -73,7 +73,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLin
   hWnd = CreateWindowEx(0, L"Lab2", L"SP2", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
     CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInstance, NULL);
 
-  ifstream in("C:/Users/Катя/Desktop/5 сем/СП/SP_2-master/SP_2-master/x64/Debug/ff.txt");
+  ifstream in("C:/Users/Катя/Desktop/5 сем/СП/SP2/ff.txt");
   string line;
   int i = 0;
   while (getline(in, line))
